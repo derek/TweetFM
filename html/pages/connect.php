@@ -1,0 +1,1 @@
+<a href="/action/login"><img src="/images/lighter.png" alt="Sign in with Twitter"/></a>
