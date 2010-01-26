@@ -53,19 +53,25 @@
 					
 					/* If HTTP response is 200 continue otherwise send to connect page to retry */
 					if (200 == $connection->http_code) {
-					  /* The user has been verified and the access tokens can be saved for future use */
-					
-					  $user_data = TWITTER::call('account/verify_credentials');
-					
-					  $_SESSION['twitter']['user_id']   = $user_data->id;
-					  $_SESSION['twitter']['username']  = $user_data->screen_name;
-					  $_SESSION['twitter']['full_name'] = $user_data->full_name;
-					  $_SESSION['status'] = 'verified';
-					
-					  header('Location: /home');
+					/* The user has been verified and the access tokens can be saved for future use */
+
+						$user_data = TWITTER::call('account/verify_credentials');
+
+						$_SESSION['twitter']['user_id']   = $user_data->id;
+						$_SESSION['twitter']['username']  = $user_data->screen_name;
+						$_SESSION['twitter']['full_name'] = $user_data->full_name;
+						$_SESSION['status'] 			  = 'verified';
+
+						$login = API::get("user", "login", array(
+							"user_id" => $user_data->id
+						));
+						
+						$_SESSION['key'] = $login['key'];
+						
+						header('Location: /home');
 					} else {
-					  /* Save HTTP status for error dialog on connnect page.*/
-					  header('Location: /action/logout/');
+						/* Save HTTP status for error dialog on connnect page.*/
+						header('Location: /action/logout/');
 					}
 					
 					
@@ -83,20 +89,28 @@
 		
 		static public function proxy()
 		{
+			$key = "2ddbac54dbc6414a53720eac0c8e0479";
+			
+			$stuff = parse_url($_REQUEST['url']);
+
+			$path = array_filter(explode("/", $stuff['path']));
+			
+			array_shift($path); // "/api/"
+			$class = array_shift($path);
+			$method = array_shift($path);
+			
 			if ($_SERVER['REQUEST_METHOD'] == "POST")
 			{
 				$params = $_POST;
+				$params['key'] = $key;
+				$response = API::post($class, $method, $params);
 			}
-			else
+			else // GET
 			{
 				$params = $_GET;
+				$params['key'] = $key;
+				$response = API::post($class, $method, $params);
 			}
-			
-			$class 	= $params['class'];
-			$method = $params['method'];
-			unset($params['class']);
-			unset($params['method']);
-			$response = API::post($class, $method, $params);
 			
 			header("Content-type: application/json");
 			echo json_encode($response);

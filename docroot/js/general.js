@@ -5,22 +5,18 @@ var API = {
 
 	post : function(api_class, api_method, params, callback){
 		
-		params["class"] = api_class;
-		params["method"] = api_method;
-		params["format"] = "json";
-		
-        var url = BASE_URL + "/action/proxy?url="+ API_URL;
-
+		params.url = API_URL + "" +  api_class + "/" +  api_method;
+				
 		$.ajax({
 			"type"		: "POST",
-			"url"		: url	,
+			"url"		: "/action/proxy",
 			"data"		: params,
 			"cache"		: false,
 			"dataType"	: "json",
 			"success"	: 	function(response)
 			{
 				if(callback)
-					callback(response.data)
+					callback(response)
 			},
 			"error"	: 	function(xhr){
 				var response = $.evalJSON(xhr.responseText);

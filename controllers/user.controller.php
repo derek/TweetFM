@@ -3,7 +3,7 @@
 	{
 		static public function main($username = null)
 		{
-			if (is_null($username))
+			if (empty($username))
 			{
 				$username = $_SESSION['twitter']['username'];
 				$public = false;
@@ -12,7 +12,7 @@
 			{
 				$public = true;
 			}
-			
+
 			if ($public) 
 			{	
 				self::userhome($username);
@@ -26,12 +26,10 @@
 		
 		static private function userhome($username)
 		{
-			$location_call 	= API::get("user", "get_locations", array("user" => $username));
-			$friends_call 	= API::get("user", "get_friends", array("user" => $username));
+			$timeline = API::get("user", "get_timeline", array("user" => $username));
 			
 			$data = array(
-				"locations" => $location_call['locations'],
-				"friends"	=> $friends_call['friends']
+				"timeline" => $timeline,
 			);
 			
 			VIEW::render(TEMPLATE::get("pages/userhome", $data));
