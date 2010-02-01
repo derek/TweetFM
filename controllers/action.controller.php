@@ -54,8 +54,10 @@
 					/* If HTTP response is 200 continue otherwise send to connect page to retry */
 					if (200 == $connection->http_code) {
 					/* The user has been verified and the access tokens can be saved for future use */
-
-						$user_data = TWITTER::call('account/verify_credentials');
+						
+						
+						$Twitter = new Twitter();
+						$user_data = $Twitter->get('account/verify_credentials');
 
 						$_SESSION['twitter']['user_id']   = $user_data->id;
 						$_SESSION['twitter']['username']  = $user_data->screen_name;
@@ -63,7 +65,10 @@
 						$_SESSION['status'] 			  = 'verified';
 
 						$login = API::get("user", "login", array(
-							"user_id" => $user_data->id
+							"twitter_id" 			=> $user_data->id,
+							"twitter_name" 			=> $user_data->screen_name,
+							"twitter_oauth_token" 	=> $access_token['oauth_token'],
+							"twitter_oauth_secret" 	=> $access_token['oauth_token_secret'],
 						));
 						
 						$_SESSION['key'] = $login['key'];

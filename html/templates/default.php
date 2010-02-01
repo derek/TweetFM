@@ -15,7 +15,7 @@
 	<body>
 		<div id="header">
 			<div style="float:left; font-weight:bold;">
-				tweet.fm - Social Music
+				Tweet.FM (alpha)
 			</div>
 			<div style="float:right; font-size:12px;">
 				<? if (isset($_SESSION['twitter']['username'])){ ?>
@@ -35,6 +35,15 @@
 				<?= $content ?>
 			</div>
 		</div>
-
+		
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		try {
+		var pageTracker = _gat._getTracker("UA-51709-15");
+		pageTracker._trackPageview();
+		} catch(err) {}</script>
 	</body>
 </html>

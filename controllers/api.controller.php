@@ -125,6 +125,19 @@
 					"_message" => "Liked"
 				);
 			}
+		
+			static public function listen_unlike($params = array())
+			{
+				self::_require($params, array(
+					"listen_id" => "Missing GET listen_id",
+				));
+
+				$GLOBALS['db']->delete('likes', "user_id = " . $GLOBALS['user_id'] . " AND listen_id = " . $params['listen_id']);
+			
+				return array(
+					"_message" => "Unliked"
+				);
+			}
 
 		
 		// *********
@@ -133,9 +146,26 @@
 			static public function comment_create($params = array())
 			{
 				self::_require($params, array(
-					"listen_id" => "Missing GET listen_id",
+					"artist" 	=> "Missing GET artist",
+					"track" 	=> "Missing GET track",
+					"comment" 	=> "Missing GET comment",
 				));
+				
+				$tokens = $GLOBALS['db']->fetchRow("SELECT twitter_oauth_token as oauth_token, twitter_oauth_secret as oauth_token_secret FROM users WHERE user_id = ?", array($GLOBALS['user_id'])); 
+				
+				if ($params['twitter'] == "true")
+				{
+					$comment = $params['comment'];
 
+					$Twitter = new Twitter($tokens); 
+					$response = $Twitter->post("statuses/update", array('status' => $comment));					
+				}
+
+				return array(
+					"_message" => "Comment posted"
+				);
+				
+				/*
 				$track_id  		= $GLOBALS['db']->fetchOne("SELECT track_id FROM listens WHERE listen_id = ?", array($params['listen_id']));
 				//$listen_id 		= $GLOBALS['db']->fetchOne("SELECT listen_id FROM listens WHERE track_id = ? AND user_id = ? ORDER BY listen_id DESC LIMIT 1", array($track_id, $GLOBALS['user_id']));
 				$last_comment 	= $GLOBALS['db']->fetchOne("SELECT comment FROM comments WHERE listen_id = ? AND user_id = ? ORDER BY comment_id DESC LIMIT 1", array($params['listen_id'], $GLOBALS['user_id']));
@@ -159,7 +189,8 @@
 					return array(
 						"_message" => "comment_id ({$comment_id}) recorded for user_id ({$GLOBALS['user_id']}) on track_id ({$track_id}) with listen_id ({$params['listen_id']})"
 					);				
-				}		
+				}
+				*/		
 			}
 		
 		
@@ -195,10 +226,33 @@
 			static public function user_login($params)
 			{
 				self::_require($params, array(
-					"user_id" => "Missing GET user_id",
+					"twitter_id" 			=> "Missing GET twitter_id",
+					"twitter_name" 			=> "Missing GET twitter_name",
+					"twitter_oauth_token"	=> "Missing GET twitter_oauth_token",
+					"twitter_oauth_secret" 	=> "Missing GET twitter_oauth_secret",
 				));
 				
-				$info = $GLOBALS['db']->fetchRow("SELECT u.user_id, u.key, u.username FROM users u WHERE twitter_id = ?", array($params['user_id']));
+				// See if the user has logged in here before
+				$user_id = $GLOBALS['db']->fetchOne("SELECT u.user_id FROM users u WHERE twitter_id = ?", array($params['twitter_id']));
+				
+				// No? Create user row
+				if ($user_id < 0)
+				{
+					$GLOBALS['db']->insert('users', array(
+						'twitter_id'   	=> $params['twitter_id'],
+						'key'   		=> MD5(microtime()),
+					));					
+					
+					$user_id = $GLOBALS['db']->fetchOne("SELECT u.user_id FROM users u WHERE twitter_id = ?", array($params['twitter_id']));
+				}
+				
+				$GLOBALS['db']->update('users', array(
+					"twitter_name" 			=> $params['twitter_name'],
+					"twitter_oauth_token"	=> $params['twitter_oauth_token'],
+					"twitter_oauth_secret" 	=> $params['twitter_oauth_secret'],					
+				), array("user_id = ?" => $user_id));
+
+				$info = $GLOBALS['db']->fetchRow("SELECT u.user_id, u.key, u.username, u.twitter_name FROM users u WHERE user_id = ?", array($user_id));
 				
 				return $info;
 			}

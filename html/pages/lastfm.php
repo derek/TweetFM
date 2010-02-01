@@ -1,26 +1,21 @@
+<h1>Your Recent Listens</h1>
 
-<? foreach ($timeline['listens'] as $listen) { ?>
-	<div class="listen_div" id="listen_id_<?= $listen['listen_id'] ?>">
+<? foreach ($tracks as $i => $track) { ?>
+	<div class="listen_div" id="listen_id_<?= $i ?>">
 		
-		<p><strong><?= $listen['artist'] ?></strong> -  <?= $listen['track'] ?></p>
+		<p><span class="artist"><?= $track['artist'] ?></span> -  <span class="track"><?= $track['track'] ?></span></p>
 		
 		<div class="listen_footer">
-			<a href="<?= URL::site($timeline['listener']['username'] . "/listen/" . $listen['listen_id']); ?>"><?= TIME::ago(strtotime($listen['date_created'])) ?></a>
-
 			<? if(isset($_SESSION['key']) && !empty($_SESSION['key'])) { ?>
-				-
+				<span class="pseudolink love_button">Love</span> | 
 				<span class="pseudolink add_comment_button">Comment</span>
-				<span class="pseudolink like_listen_link"><?= ($listen['liked'] == "true")?"Unlike":"Like"; ?></span>
 			<? } ?>
 		</div>
-		<? foreach ($listen['comments'] as $comment) { ?>
-			<div class="comment"><?= $comment['author']['username'] ?>: <?= $comment['comment'] ?></div>
-		<? } ?>
 	
 		<div  class="comment add_comment_div">
-			<?= $_SESSION['twitter']['username'] ?>: 
-			<input type="text" name="comment">
-			<input type="button" value="Comment" class="submit_comment_button"> 
+			You say: <input type="text" name="comment" style="width:700px">
+			<input type="checkbox" name="twitter" checked="checked"> Send to Twitter
+			<input type="button" value="Submit" class="submit_comment_button"> 
 			<span class="pseudolink cancel_comment_link">Cancel</span>
 		</div>
 	</div>
@@ -32,6 +27,7 @@
 	function addCommentHandler(e)
 	{
 		listen_id = $(e.target).parents(".listen_div")[0].id.replace("listen_id_", "");
+		$("#listen_id_" + listen_id + " .add_comment_button").hide();
 		$("#listen_id_" + listen_id + " .add_comment_div").show();
 		$("#listen_id_" + listen_id + " .add_comment_div input[type=text]").focus();
 	}
@@ -40,18 +36,25 @@
 	{
 		listen_id = $(e.target).parents(".listen_div")[0].id.replace("listen_id_", "");
 		$("#listen_id_" + listen_id + " .add_comment_div input[type=text]").val('');
+		$("#listen_id_" + listen_id + " .add_comment_button").show();
 		$("#listen_id_" + listen_id + " .add_comment_div").hide();
 	}
 
 	function submitCommentHandler(e)
 	{
-		listen_id = $(e.target).parents(".listen_div")[0].id.replace("listen_id_", "");
-		comment = $("#listen_id_" + listen_id + " .add_comment_div input[type=text]").val();
+		listen_id 	= $(e.target).parents(".listen_div")[0].id.replace("listen_id_", "");
+		comment 	= $("#listen_id_" + listen_id + " .add_comment_div input[name=comment]").val();
+		artist 		= $("#listen_id_" + listen_id + " .artist").html();
+		track 		= $("#listen_id_" + listen_id + " .track").html();
+		twitter		= $("#listen_id_" + listen_id + " input[name=twitter]").attr("checked");
+		
 		API.post("comment", "create", {
-			"listen_id" : listen_id,
-			"comment"	: comment
+			"comment"	: comment,
+			"artist"	: artist,
+			"track"		: track,
+			"twitter"	: twitter,
 		}, function(response, error){
-			window.location.reload();
+			//window.location.reload();
 		});
 	}
 	
