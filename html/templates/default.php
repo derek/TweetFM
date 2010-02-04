@@ -1,6 +1,7 @@
 <html>
 	
 	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<link rel="stylesheet" href="/css/reset.css" type="text/css" media="screen, projection">
 		<link rel="stylesheet" href="/css/default.css" type="text/css" media="screen, projection">
 		<link rel="stylesheet" href="/css/main.css" type="text/css" media="screen, projection">
@@ -19,12 +20,13 @@
 			</div>
 			<div style="float:right; font-size:12px;">
 				<? if (isset($_SESSION['twitter']['username'])){ ?>
-				<a href="/home">Home</a> | 
-				<a href="/<?= $_SESSION['twitter']['username'] ?>">Profile</a> | 
-				<a href="/settings">Settings</a> | 
-				<a href="/action/logout">Sign Out</a>
-				<? } else { ?>
-					<a href="/action/login">Sign In</a>
+					<a href="<?= URL::site("/home")?>">Home</a> | 
+					<a href="<?= URL::site("/" . $_SESSION['twitter']['username'] )?>">Profile</a> | 
+					<a href="<?= URL::site("/" . $_SESSION['twitter']['username'] . "/listens")?>">Listens</a> |
+					<a href="<?= URL::site("/settings")?>">Settings</a> | 
+					<a href="<?= URL::site("/action/logout")?>">Sign out</a>
+				<? } else { ?>	
+					<a href="<?= URL::site("/action/login")?>">Sign in</a>
 				<? } ?>
 			</div>
 			<div style="clear:both"></div>

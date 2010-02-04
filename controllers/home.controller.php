@@ -4,19 +4,25 @@
 		static public function main($username = null, $subpage = null, $sub_id = null)
 		{
 			if ($username)
-			{
-				if (!empty($subpage))
+			{	
+				switch($subpage)
 				{
-					self::listen($sub_id);
-				}
-				else
-				{
-					self::userpublic($username);
+					case "comment":
+						self::comment($username, $sub_id);
+						break;
+						
+					case "listens":
+						self::listens($username);
+						break;
+						
+					default:
+						self::userpublic($username);
+						break;
 				}
 			}
 			elseif (isset($_SESSION['twitter']['user_id']) && $_SESSION['twitter']['user_id'] > 0)
 			{
-				self::friend_timeline();
+				self::friends();
 			}
 			else
 			{
@@ -31,30 +37,28 @@
 		
 		static private function userpublic($username)
 		{
-			$timeline = API::get("user", "get_timeline", array("user" => $username));
-
-			$data = array(
-				"timeline" => $timeline,
-				"username" => $username
-			);
+			$data = API::get("user", "comments", array("user" => $username));
 
 			VIEW::render(TEMPLATE::get("pages/userhome", $data));
 		}
 				
-		static private function friend_timeline()
+		static private function listens($username)
+		{
+			$data = API::get("user", "timeline", array("user" => $username));
+
+			VIEW::render(TEMPLATE::get("pages/lastfm", $data));
+		}
+				
+		static private function friends()
 		{
 			VIEW::render(TEMPLATE::get("pages/friend_timeline", $data));
 		}
 		
-		static private function listen($listen_id)
+		static private function comment($username, $comment_id)
 		{
-			$listen = API::get("listen", "get", array("listen_id" => $listen_id));
+			$comment = API::get("user", "get_comment", array("user" => $username, "comment_id" => $comment_id));
 			
-			$data = array(
-				"listen" => $listen
-			);
-			
-			VIEW::render(TEMPLATE::get("pages/listen", $data));
+			VIEW::render(TEMPLATE::get("pages/comment", $comment));
 		}
 	}
 ?>

@@ -69,6 +69,7 @@
 							"twitter_name" 			=> $user_data->screen_name,
 							"twitter_oauth_token" 	=> $access_token['oauth_token'],
 							"twitter_oauth_secret" 	=> $access_token['oauth_token_secret'],
+							"twitter_picture_url" 	=> $user_data->profile_image_url,
 						));
 						
 						$_SESSION['key'] = $login['key'];
