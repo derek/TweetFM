@@ -16,7 +16,7 @@
 						break;
 						
 					default:
-						self::userpublic($username);
+						self::comments($username);
 						break;
 				}
 			}
@@ -35,18 +35,18 @@
 			VIEW::render(TEMPLATE::get("pages/home", $page));
 		}
 		
-		static private function userpublic($username)
+		static private function comments($username)
 		{
 			$data = API::get("user", "comments", array("user" => $username));
 
-			VIEW::render(TEMPLATE::get("pages/userhome", $data));
+			VIEW::render(TEMPLATE::get("pages/comments", $data));
 		}
 				
 		static private function listens($username)
 		{
 			$data = API::get("user", "timeline", array("user" => $username));
 
-			VIEW::render(TEMPLATE::get("pages/lastfm", $data));
+			VIEW::render(TEMPLATE::get("pages/listens", $data));
 		}
 				
 		static private function friends()
