@@ -75,7 +75,7 @@
 	{
 		listen_id = $(e.target).parents(".listen_div")[0].id.replace("listen_id_", "");
 		var state = $("#listen_id_" + listen_id + " .like_listen_link").html();
-		console.log(state);
+		
 		if (state == "Like")
 		{
 			text 	= "Unlike"

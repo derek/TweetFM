@@ -103,6 +103,7 @@
 					if ($Track)
 					{
 						$track['comments'] = $Track->get_comments($track);
+						//	$track['comments'] = array();
 					}
 					else
 					{
@@ -121,7 +122,7 @@
 			
 			static public function user_comments($params)
 			{
-				$comments = $GLOBALS['db']->fetchAll("SELECT c.comment_id, c.comment, c.date_created, c.track_id FROM comments c LEFT JOIN users u ON u.user_id = c.user_id WHERE u.twitter_name = ? ORDER BY comment_id DESC", array($params['user']));
+				$comments = $GLOBALS['db']->fetchAll("SELECT c.comment_id, c.comment, c.date_created, c.listen_id FROM comments c LEFT JOIN users u ON u.user_id = c.user_id WHERE u.twitter_name = ? ORDER BY comment_id DESC", array($params['user']));
 
 				foreach ($comments as &$comment)
 				{
@@ -131,7 +132,7 @@
 					unset($comment['track_id']);
 				}
 				
-				$User = User::factory($GLOBALS['user_id']);
+				$User = new User($params['user']);
 				$author = $User->get_info();
 				
 				return array(
@@ -202,6 +203,19 @@
 				
 				return $info;
 			}
+			
+			static public function listen_get_info($params)
+			{
+				self::_require($params, array(
+					"listen_id" 			=> "Missing GET listen_id",
+				));
+				
+				$Listen = LISTEN::factory(array("user_id" => $GLOBALS['user_id'], "listen_id" => $params['listen_id']));
+								
+				$info = $Listen->get_info();
+				
+				return $info;
+			}
 		
 		
 		/** PRIVATE **/
@@ -220,7 +234,7 @@
 	}
 	
 	
-	
+	// Below are the API object models
 	
 	class User
 	{
@@ -275,9 +289,76 @@
 			return true;
 		}
 	}
-	
-	
-	
+
+	class Listen
+	{
+		static public function factory($info, $create_if_not_exists = false)
+		{
+			if (isset($info['listen_id']))
+			{
+				$listen_id = $info['listen_id'];
+			}
+			else
+			{
+				$listen_id = false;
+			}
+			
+			if (empty($info['track_id']) && $create_if_not_exists)
+			{
+				$GLOBALS['db']->insert('listens', array(
+					'user_id'   	=> $info['user_id'],
+					'track_id'   	=> $info['track_id'],
+				));
+		
+				$listen_id = $GLOBALS['db']->fetchOne("SELECT listen_id FROM listens WHERE user_id = ? AND track_id = ? ORDER BY listen_id DESC LIMIT 1", array($info['user_id'], $info['track_id']));
+			}
+			
+			if ($listen_id > 0)
+			{
+				$Listen = new Listen($listen_id);
+				return $Listen;				
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		public function __construct($listen_id) {
+			$this->listen_id = $listen_id;
+		}
+		
+		public function get_info() {
+			$info = $GLOBALS['db']->fetchRow("SELECT * FROM listens WHERE listen_id = ?", array($this->listen_id));
+			$info['comments'] = $this->get_comments();
+			
+			$User = new User($info['user_id']);
+			$info['user'] = $User->get_info();
+			
+			$Track = TRACK::factory(array("track_id" => $info['track_id']), false);
+			$info['track'] = $Track->get_info();
+			
+			unset($info['track_id']);
+			unset($info['user_id']);
+			
+			return $info;
+		}
+		
+		public function get_comments()
+		{
+			$comments = $GLOBALS['db']->fetchAll("SELECT c.comment_id, c.comment, c.user_id, c.date_created FROM comments c WHERE listen_id = ? ORDER BY comment_id DESC", array($this->listen_id));
+
+			foreach ($comments as &$comment)
+			{
+				$User = new User($comment['user_id']);
+				$comment['author'] = $User->get_info();
+				unset($comment['user_id']);
+			}
+			
+			return $comments;
+		}
+		
+	}
 	
 	class Track
 	{
@@ -335,7 +416,7 @@
 		
 		public function get_comments()
 		{
-			$comments = $GLOBALS['db']->fetchAll("SELECT c.comment_id, c.comment, c.user_id, c.date_created FROM comments c WHERE track_id = ? ORDER BY comment_id DESC", array($this->track_id));
+			$comments = $GLOBALS['db']->fetchAll("SELECT c.comment_id, c.comment, c.user_id, c.date_created FROM comments c LEFT JOIN listens l ON c.listen_id = l.listen_id WHERE l.track_id = ? ORDER BY comment_id DESC", array($this->track_id));
 
 			foreach ($comments as &$comment)
 			{
@@ -356,8 +437,10 @@
 		
 		public function add_comment($user_id, $comment)
 		{
+			$Listen = LISTEN::factory(array("user_id" => $user_id, "track_id" => $this->track_id));
+			
 			$GLOBALS['db']->insert('comments', array(
-				'track_id' => $this->track_id,
+				'listen_id' => $Listen->listen_id,
 				'user_id'  => $user_id,
 				'comment'  => $comment,
 			));

@@ -15,6 +15,10 @@
 						self::listens($username);
 						break;
 						
+					case "listen":
+						self::listen($username, $sub_id);
+						break;
+						
 					default:
 						self::comments($username);
 						break;
@@ -38,15 +42,22 @@
 		static private function comments($username)
 		{
 			$data = API::get("user", "comments", array("user" => $username));
-
+			
 			VIEW::render(TEMPLATE::get("pages/comments", $data));
 		}
 				
 		static private function listens($username)
 		{
 			$data = API::get("user", "timeline", array("user" => $username));
-
+			
 			VIEW::render(TEMPLATE::get("pages/listens", $data));
+		}
+				
+		static private function listen($username, $listen_id)
+		{
+			$data = API::get("listen", "get_info", array("user" => $username, "listen_id" => $listen_id));
+			
+			VIEW::render(TEMPLATE::get("pages/listen", $data));
 		}
 				
 		static private function friends()

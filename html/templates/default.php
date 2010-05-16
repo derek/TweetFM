@@ -21,7 +21,7 @@
 			<div style="float:right; font-size:12px;">
 				<? if (isset($_SESSION['twitter']['username'])){ ?>
 					<a href="<?= URL::site("/home")?>">Home</a> | 
-					<a href="<?= URL::site("/" . $_SESSION['twitter']['username'] )?>">Profile</a> | 
+					<a href="<?= URL::site("/" . $_SESSION['twitter']['username'] )?>">Comments</a> | 
 					<a href="<?= URL::site("/" . $_SESSION['twitter']['username'] . "/listens")?>">Listens</a> |
 					<a href="<?= URL::site("/settings")?>">Settings</a> | 
 					<a href="<?= URL::site("/action/logout")?>">Sign out</a>
