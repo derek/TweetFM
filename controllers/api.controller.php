@@ -50,19 +50,28 @@
 				$Track = Track::factory($params, true);
 				if ($Track)
 				{
-					$Track->add_comment($GLOBALS['user_id'], $params['comment']);
+					$comment_id = $Track->add_comment($GLOBALS['user_id'], $params['comment']);
 
-					/*
+					
 					if ($params['twitter'] == "true")
 					{
-						$comment = $params['comment'];
+						$status = $params['comment'];
 
-						$tokens = $GLOBALS['db']->fetchRow("SELECT twitter_oauth_token as oauth_token, twitter_oauth_secret as oauth_token_secret FROM users WHERE user_id = ?", array($GLOBALS['user_id'])); 
-
+						$user_info = $GLOBALS['db']->fetchRow("SELECT twitter_name, twitter_oauth_token, twitter_oauth_secret FROM users WHERE user_id = ?", array($GLOBALS['user_id'])); 
+						
+						$tokens = array(
+							"oauth_token" => $user_info['twitter_oauth_token'],
+							"oauth_token_secret" => $user_info['twitter_oauth_secret'],
+						);
+						
+						if (strlen($status) > 90)
+							$status = substr($comment, 0, 90) . "...";
+							
+						$status .=  " http://tweet.fm/" . $user_info['twitter_name'] . "/comment/" . $comment_id;
 						$Twitter = new Twitter($tokens); 
-						$response = $Twitter->post("statuses/update", array('status' => $comment));					
+						$response = $Twitter->post("statuses/update", array('status' => $status));					
 					}
-					*/
+					
 
 					return array(
 						"_message" => "Comment posted"
@@ -128,8 +137,7 @@
 				{
 					$Track = Track::factory($comment);
 					$comment['track'] = $Track->get_info();
-					
-					unset($comment['track_id']);
+					//unset($comment['track_id']);
 				}
 				
 				$User = new User($params['user']);
@@ -143,12 +151,15 @@
 			
 			static public function user_get_comment($params)
 			{
-				$comment = $GLOBALS['db']->fetchRow("SELECT c.comment_id, c.comment, c.date_created, c.track_id, c.user_id FROM comments c WHERE comment_id = ?", array($params['comment_id']));
+				$comment = $GLOBALS['db']->fetchRow("SELECT c.comment_id, c.comment, c.date_created, c.listen_id, c.user_id FROM comments c WHERE comment_id = ?", array($params['comment_id']));
 
-				$Track = Track::factory($comment);
+				$Listen = LISTEN::factory($comment);
+				$comment['listen'] = $Listen->get_info();
+				
+				$Track = Track::factory($comment['listen']['track']);
 				$comment['track'] = $Track->get_info();
 				
-				$User = User::factory($comment['user_id']);
+				$User = new User($comment['user_id']);
 				$comment['author'] = $User->get_info();
 				
 				unset($comment['track_id']);
@@ -234,6 +245,11 @@
 	}
 	
 	
+	
+	
+	
+	
+	
 	// Below are the API object models
 	
 	class User
@@ -262,6 +278,7 @@
 		
 		public function __construct($user_id)
 		{
+			
 			if (is_string($user_id))
 			{
 				if (strlen($user_id) == 32)
@@ -303,7 +320,7 @@
 				$listen_id = false;
 			}
 			
-			if (empty($info['track_id']) && $create_if_not_exists)
+			if (empty($listen_id) && $create_if_not_exists)
 			{
 				$GLOBALS['db']->insert('listens', array(
 					'user_id'   	=> $info['user_id'],
@@ -326,6 +343,10 @@
 		
 		public function __construct($listen_id) {
 			$this->listen_id = $listen_id;
+			
+			$info = $this->get_info();
+			
+			$this->track_id = $info['track_id'];
 		}
 		
 		public function get_info() {
@@ -367,6 +388,10 @@
 			if (isset($info['track_id']))
 			{
 				$track_id = $info['track_id'];
+			}
+			else if (isset($info['listen_id']))
+			{
+				$track_id = $GLOBALS['db']->fetchOne("SELECT track_id FROM listens WHERE listen_id = ?", array($info['listen_id']));
 			}
 			else
 			{
@@ -437,15 +462,17 @@
 		
 		public function add_comment($user_id, $comment)
 		{
-			$Listen = LISTEN::factory(array("user_id" => $user_id, "track_id" => $this->track_id));
+			$Listen = LISTEN::factory(array("user_id" => $user_id, "track_id" => $this->track_id), true);
 			
 			$GLOBALS['db']->insert('comments', array(
 				'listen_id' => $Listen->listen_id,
-				'user_id'  => $user_id,
-				'comment'  => $comment,
+				'user_id'   => $user_id,
+				'comment'   => $comment,
 			));
+		
+			$comment_id = $GLOBALS['db']->fetchOne("SELECT comment_id FROM comments WHERE listen_id = ? AND comment = ?", array($Listen->listen_id, $comment));
 			
-			return true;		
+			return $comment_id;		
 		}
 	}
 ?>

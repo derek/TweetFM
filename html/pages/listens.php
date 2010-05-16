@@ -1,4 +1,4 @@
-<h1>Your Recent Listens</h1>
+<h1>Recent Listens</h1>
 
 <? foreach ($tracks as $i => $track) { ?>
 	<div class="listen_div" id="listen_id_<?= $i ?>">
@@ -14,7 +14,7 @@
 		
 		<div  class="comment add_comment_div">
 			You say: <input type="text" name="comment" style="width:700px">
-			<input type="checkbox" name="twitter" disabled="disabled"> Send to Twitter
+			<input type="checkbox" name="twitter" checked="checked"> Send to Twitter
 			<input type="button" value="Submit" class="submit_comment_button"> 
 			<span class="pseudolink cancel_comment_link">Cancel</span>
 		</div>
@@ -67,7 +67,7 @@
 			"track"		: track,
 			"twitter"	: twitter,
 		}, function(response, error){
-			window.location.reload();
+			//window.location.reload();
 		});
 	}
 	

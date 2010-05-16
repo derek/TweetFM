@@ -49,7 +49,6 @@
 		static private function listens($username)
 		{
 			$data = API::get("user", "timeline", array("user" => $username));
-			
 			VIEW::render(TEMPLATE::get("pages/listens", $data));
 		}
 				
@@ -68,7 +67,6 @@
 		static private function comment($username, $comment_id)
 		{
 			$comment = API::get("user", "get_comment", array("user" => $username, "comment_id" => $comment_id));
-			
 			VIEW::render(TEMPLATE::get("pages/comment", $comment));
 		}
 	}
