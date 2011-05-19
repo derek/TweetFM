@@ -55,12 +55,12 @@
 		static private function listen($username, $listen_id)
 		{
 			$data = API::get("listen", "get_info", array("user" => $username, "listen_id" => $listen_id));
-			
 			VIEW::render(TEMPLATE::get("pages/listen", $data));
 		}
 				
 		static private function friends()
 		{
+			$data = API::get("users", "all");
 			VIEW::render(TEMPLATE::get("pages/friend_timeline", $data));
 		}
 		

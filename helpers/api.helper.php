@@ -19,7 +19,7 @@
 			curl_close($ch);
 			
 			$r = json_decode($response, true);
-
+$r = stripslashes_deep($r);
 			if (!is_array($r))
 			{	
 				return "API response parsing error: params = " . print_r($params, true) . "\n\n" . $response;
@@ -48,6 +48,7 @@
 			curl_close($ch);
 			$arr = json_decode($response, true);
 			
+$arr = stripslashes_deep($arr);
 			if (is_array($arr))
 				return $arr;
 			else
@@ -55,5 +56,12 @@
 		}
 	}
 	
-	
+	function stripslashes_deep($value)
+	{
+	    $value = is_array($value) ?
+	                array_map('stripslashes_deep', $value) :
+	                stripslashes($value);
+
+	    return $value;
+	}
 ?>

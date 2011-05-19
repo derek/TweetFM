@@ -1,5 +1,10 @@
-<div>Sorry.  This thing is so new, you can't even friend people yet! In the meantime, enjoy some nostalgia.</div>
+<p>If you haven't yet linked your Last.FM account, go do it on the <a href="/settings">settings page</a></p>
+<br />
+<br />
+<p>This page is where your friends latest activity will eventually go. In the meantime, here are links to all the Tweet.fm users</p>
 
-<img src="http://www.freefever.com/animatedgifs/animated/construction10.gif">
-<img src="http://www.freefever.com/animatedgifs/animated/construction13.gif">
-
+<ul>
+	<? foreach ($users as $user) { ?>
+		<li>@<?= $user['twitter_name'] ?> - <a href="/<?= $user['twitter_name'] ?>">Comments</a> / <a href="/<?= $user['twitter_name'] ?>/listens">Listens</a></li>
+	<? } ?>
+</ul>

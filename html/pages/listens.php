@@ -19,7 +19,7 @@
 			<span class="pseudolink cancel_comment_link">Cancel</span>
 		</div>
 
-		<? foreach ($track['comments'] as $comment) { ?>
+		<? /*foreach ($track['comments'] as $comment) { ?>
 			<div class="comment">
 				<img src="<?= $comment['author']['picture_url'] ?>" style="float:left">
 				<a href="<?= URL::site($comment['author']['username'])?>"><?= $comment['author']['username'] ?></a>: <?= $comment['comment'] ?> 
@@ -27,7 +27,7 @@
 				<a href="<?= URL::site($comment['author']['username'] . "/comment/" . $comment['comment_id']) ?>"><?= TIME::ago(strtotime($comment['date_created'])) ?></a>
 				<div style="clear:both"></div>
 			</div>
-		<? } ?>
+		<? }*/ ?>
 	
 	</div>
 	<hr />
@@ -67,7 +67,7 @@
 			"track"		: track,
 			"twitter"	: twitter,
 		}, function(response, error){
-			//window.location.reload();
+			window.location.href = "http://tweet.fm/<?= $user['username'] ?>/listen/" + response.listen_id;
 		});
 	}
 	

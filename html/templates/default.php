@@ -26,7 +26,7 @@
 					<a href="<?= URL::site("/settings")?>">Settings</a> | 
 					<a href="<?= URL::site("/action/logout")?>">Sign out</a>
 				<? } else { ?>	
-					<a href="<?= URL::site("/action/login")?>">Sign in</a>
+					<a href="<?= URL::site("/action/login")?>"><img src="http://apiwiki.twitter.com/f/1242697715/Sign-in-with-Twitter-darker.png"></a>
 				<? } ?>
 			</div>
 			<div style="clear:both"></div>

@@ -62,6 +62,7 @@
 						$_SESSION['twitter']['user_id']   = $user_data->id;
 						$_SESSION['twitter']['username']  = $user_data->screen_name;
 						$_SESSION['twitter']['full_name'] = $user_data->full_name;
+						$_SESSION['twitter']['picture_url'] = $user_data->profile_image_url;
 						$_SESSION['status'] 			  = 'verified';
 
 						$login = API::get("user", "login", array(

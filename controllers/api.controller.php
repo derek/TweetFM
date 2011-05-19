@@ -41,22 +41,21 @@
 			static public function comment_create($params = array())
 			{
 				self::_require($params, array(
-					"artist" 	=> "Missing GET artist",
-					"album" 	=> "Missing GET album",
-					"track" 	=> "Missing GET track",
 					"comment" 	=> "Missing GET comment",
 				));
 				
 				$Track = Track::factory($params, true);
 				if ($Track)
 				{
-					$comment_id = $Track->add_comment($GLOBALS['user_id'], $params['comment']);
-
+					// TODO: Make this return a Comments object for the next 2 lines.
+					if (!isset($params['listen_id']))
+						$params['listen_id'] = false;
+					$comment_id = $Track->add_comment($GLOBALS['user_id'], $params['comment'], $params['listen_id']);
+					$listen_id = $GLOBALS['db']->fetchOne("SELECT listen_id FROM comments WHERE comment_id = ?", array($comment_id)); 
 					
 					if ($params['twitter'] == "true")
 					{
 						$status = $params['comment'];
-
 						$user_info = $GLOBALS['db']->fetchRow("SELECT twitter_name, twitter_oauth_token, twitter_oauth_secret FROM users WHERE user_id = ?", array($GLOBALS['user_id'])); 
 						
 						$tokens = array(
@@ -65,16 +64,19 @@
 						);
 						
 						if (strlen($status) > 90)
-							$status = substr($comment, 0, 90) . "...";
+							$status = substr($status, 0, 90) . "...";
 							
-						$status .=  " http://tweet.fm/" . $user_info['twitter_name'] . "/comment/" . $comment_id;
+						$status .=  " http://tweet.fm/" . $user_info['twitter_name'] . "/listen/" . $listen_id;
 						$Twitter = new Twitter($tokens); 
-						$response = $Twitter->post("statuses/update", array('status' => $status));					
+						$response = $Twitter->post("statuses/update", array('status' => $status));		
 					}
 					
 
 					return array(
-						"_message" => "Comment posted"
+						"_message" => "Comment posted",
+						"comment_id" => $comment_id,
+						"listen_id" => $listen_id,
+						"user" => $user_info['twitter_name'],
 					);	
 				}
 				else
@@ -88,6 +90,15 @@
 		
 		// *********
 		// User
+		
+			static public function users_all($params)
+			{
+				$users = $GLOBALS['db']->fetchAll("SELECT twitter_name FROM users u WHERE lastfm_name IS NOT NULL ORDER BY twitter_id ASC");
+				
+				return array(
+					"users" => $users
+				);
+			}
 		
 			static public function user_timeline($params)
 			{
@@ -392,6 +403,7 @@
 			else if (isset($info['listen_id']))
 			{
 				$track_id = $GLOBALS['db']->fetchOne("SELECT track_id FROM listens WHERE listen_id = ?", array($info['listen_id']));
+				$info = $GLOBALS['db']->fetchRow("SELECT artist, album, track FROM tracks t LEFT JOIN listens l ON l.track_id = t.track_id WHERE l.listen_id = ?", array($info['listen_id']));
 			}
 			else
 			{
@@ -460,9 +472,16 @@
 			return $data;
 		}
 		
-		public function add_comment($user_id, $comment)
+		public function add_comment($user_id, $comment, $listen_id = false)
 		{
-			$Listen = LISTEN::factory(array("user_id" => $user_id, "track_id" => $this->track_id), true);
+			if ($listen_id)
+			{
+				$Listen = new Listen($listen_id);
+			}
+			else
+			{
+				$Listen = LISTEN::factory(array("user_id" => $user_id, "track_id" => $this->track_id), true);
+			}
 			
 			$GLOBALS['db']->insert('comments', array(
 				'listen_id' => $Listen->listen_id,
